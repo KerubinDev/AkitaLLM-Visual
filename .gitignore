@@ -1,0 +1,17 @@
+# Python
+backend/venv/
+backend/__pycache__/
+backend/*.pyc
+backend/.env
+backend/devflow.db
+
+# Node
+mobile/node_modules/
+mobile/.expo/
+mobile/dist/
+frontend/node_modules/
+frontend/dist/
+
+# System
+.DS_Store
+Thumbs.db
