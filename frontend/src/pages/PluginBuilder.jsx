@@ -52,47 +52,41 @@ function PluginBuilder() {
         setTools(newTools);
     };
 
-    // Code Generator
-    const generatePythonCode = () => {
-        const className = pluginInfo.name.replace(/\s+/g, '');
+    const [generatedCode, setGeneratedCode] = useState('');
+    const [isGenerating, setIsGenerating] = useState(false);
 
-        let code = `from akita.core.plugins import AkitaPlugin
-from typing import List, Dict, Any
-
-class ${className}(AkitaPlugin):
-    @property
-    def name(self) -> str:
-        return "${pluginInfo.name.toLowerCase().replace(/\s+/g, '_')}"
-
-    @property
-    def description(self) -> str:
-        return "${pluginInfo.description}"
-
-    def get_tools(self) -> List[Dict[str, Any]]:
-        return [\n`;
-
-        tools.forEach(tool => {
-            const paramsDict = tool.params.map(p => `"${p.name}": "${p.type}"`).join(', ');
-            code += `            {
-                "name": "${tool.name}",
-                "description": "${tool.description}",
-                "parameters": {${paramsDict}},
-                "func": self.${tool.name}_impl
-            },\n`;
-        });
-
-        code += `        ]
-
-    # Tool Implementations\n`;
-
-        tools.forEach(tool => {
-            const paramsArgs = tool.params.map(p => `${p.name}: ${p.type}`).join(', ');
-            code += `    def ${tool.name}_impl(self, ${paramsArgs}) -> ${tool.returnType}:
-        # TODO: Implement ${tool.name} logic
-        return "Not implemented"\n\n`;
-        });
-
-        return code;
+    // Code Generator calling the Backend Proxy
+    const handleGenerate = async () => {
+        setIsGenerating(true);
+        try {
+            const response = await fetch('http://localhost:8000/plugins/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: pluginInfo.name,
+                    description: pluginInfo.description,
+                    tools: tools.map(t => ({
+                        name: t.name,
+                        description: t.description,
+                        parameters: {
+                            type: 'object',
+                            properties: t.params.reduce((acc, p) => {
+                                acc[p.name] = { type: p.type, description: p.description };
+                                return acc;
+                            }, {}),
+                            required: t.params.map(p => p.name)
+                        }
+                    }))
+                })
+            });
+            const data = await response.json();
+            setGeneratedCode(data.template);
+        } catch (error) {
+            console.error('Error generating plugin:', error);
+            alert('Falha ao gerar o plugin via Akita Core.');
+        } finally {
+            setIsGenerating(false);
+        }
     };
 
     const generateTomlCode = () => {
@@ -104,6 +98,7 @@ ${entryPoint} = "my_package.module:${className}"`;
     };
 
     const copyToClipboard = (text) => {
+        if (!text) return;
         navigator.clipboard.writeText(text);
         alert('Copiado para a área de transferência!');
     };
@@ -203,12 +198,21 @@ ${entryPoint} = "my_package.module:${className}"`;
                     <div className="card sticky-top" style={{ top: '20px' }}>
                         <div className="flex-between mb-sm">
                             <h3>📜 plugin.py</h3>
-                            <button className="btn btn-sm btn-primary" onClick={() => copyToClipboard(generatePythonCode())}>
-                                Copiar
-                            </button>
+                            <div className="flex gap-sm">
+                                <button
+                                    className={`btn btn-sm ${isGenerating ? 'btn-disabled' : 'btn-secondary'}`}
+                                    onClick={handleGenerate}
+                                    disabled={isGenerating}
+                                >
+                                    {isGenerating ? 'Gerando...' : 'Gerar Código no Core'}
+                                </button>
+                                <button className="btn btn-sm btn-primary" onClick={() => copyToClipboard(generatedCode)}>
+                                    Copiar
+                                </button>
+                            </div>
                         </div>
                         <pre className="code-block" style={{ maxHeight: '400px', overflow: 'auto', fontSize: '12px' }}>
-                            {generatePythonCode()}
+                            {generatedCode || '# Clique em "Gerar Código no Core" para visualizar o template oficial.'}
                         </pre>
 
                         <div className="flex-between mb-sm mt-lg">
