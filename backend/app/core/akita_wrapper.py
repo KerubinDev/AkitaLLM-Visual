@@ -3,7 +3,7 @@ AkitaLLM Wrapper - API Integration (Refactored)
 """
 import asyncio
 import httpx
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Optional, List, Dict
 from datetime import datetime
 
 class PipelineOrchestrator:
