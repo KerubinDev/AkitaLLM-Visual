@@ -99,10 +99,15 @@ async def create_execucao(
     projeto = await ProjetoService.get_by_id(db, projeto_id, current_user.id)
     
     # Build pipeline config
-    # Merge project config with execution params (mode, target, etc.)
+    # Merge project config/settings with execution params
     pipeline_config = {
-        **projeto.configuracao_pipeline,
-        **execucao_data.parametros_entrada
+        "mode": execucao_data.parametros_entrada.get("mode", "review"),
+        "target": execucao_data.parametros_entrada.get("target", "."),
+        "options": {
+            "language": projeto.idioma,
+            "temperature": projeto.temperatura,
+            "project_config": projeto.configuracao_pipeline
+        }
     }
     
     # Schedule background execution

@@ -17,6 +17,8 @@ class Projeto(Base):
     usuario_id: Mapped[int] = mapped_column(ForeignKey("usuarios.id"), nullable=False)
     nome: Mapped[str] = mapped_column(String(100), nullable=False)
     descricao: Mapped[str] = mapped_column(Text, nullable=True)
+    idioma: Mapped[str] = mapped_column(String(10), default="en")
+    temperatura: Mapped[float] = mapped_column(default=0.7)
     configuracao_pipeline: Mapped[dict] = mapped_column(JSON, default=dict)
     ativo: Mapped[bool] = mapped_column(Boolean, default=True)
     criado_em: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)

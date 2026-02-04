@@ -26,6 +26,8 @@ class ProjetoService:
             usuario_id=user_id,
             nome=projeto_data.nome,
             descricao=projeto_data.descricao,
+            idioma=projeto_data.idioma,
+            temperatura=projeto_data.temperatura,
             configuracao_pipeline=projeto_data.configuracao_pipeline
         )
         
@@ -60,6 +62,12 @@ class ProjetoService:
         if projeto_data.descricao is not None:
             projeto.descricao = projeto_data.descricao
         
+        if projeto_data.idioma is not None:
+            projeto.idioma = projeto_data.idioma
+        
+        if projeto_data.temperatura is not None:
+            projeto.temperatura = projeto_data.temperatura
+
         if projeto_data.configuracao_pipeline is not None:
             projeto.configuracao_pipeline = projeto_data.configuracao_pipeline
         

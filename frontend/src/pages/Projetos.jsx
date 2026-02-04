@@ -14,7 +14,12 @@ function Projetos() {
 
     const [showModal, setShowModal] = useState(false);
     const [editingProjeto, setEditingProjeto] = useState(null);
-    const [formData, setFormData] = useState({ nome: '', descricao: '' });
+    const [formData, setFormData] = useState({
+        nome: '',
+        descricao: '',
+        idioma: 'en',
+        temperatura: 0.7
+    });
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState('');
 
@@ -36,10 +41,20 @@ function Projetos() {
     const openModal = (projeto = null) => {
         if (projeto) {
             setEditingProjeto(projeto);
-            setFormData({ nome: projeto.nome, descricao: projeto.descricao || '' });
+            setFormData({
+                nome: projeto.nome,
+                descricao: projeto.descricao || '',
+                idioma: projeto.idioma || 'en',
+                temperatura: projeto.temperatura || 0.7
+            });
         } else {
             setEditingProjeto(null);
-            setFormData({ nome: '', descricao: '' });
+            setFormData({
+                nome: '',
+                descricao: '',
+                idioma: 'en',
+                temperatura: 0.7
+            });
         }
         setError('');
         setShowModal(true);
@@ -48,7 +63,12 @@ function Projetos() {
     const closeModal = () => {
         setShowModal(false);
         setEditingProjeto(null);
-        setFormData({ nome: '', descricao: '' });
+        setFormData({
+            nome: '',
+            descricao: '',
+            idioma: 'en',
+            temperatura: 0.7
+        });
     };
 
     const handleSubmit = async (e) => {
@@ -142,15 +162,19 @@ function Projetos() {
                         <div key={projeto.id} className="card">
                             <div className="card-header">
                                 <h3 className="card-title">{projeto.nome}</h3>
+                                <span className="badge badge-secondary" style={{ textTransform: 'uppercase' }}>
+                                    {projeto.idioma}
+                                </span>
                             </div>
 
                             <p className="text-muted text-small mb-md">
                                 {projeto.descricao || 'Sem descrição'}
                             </p>
 
-                            <p className="text-muted text-small">
-                                Criado em: {new Date(projeto.criado_em).toLocaleDateString('pt-BR')}
-                            </p>
+                            <div className="flex-between text-muted text-small mb-md">
+                                <span>Creativity: {projeto.temperatura}</span>
+                                <span>{new Date(projeto.criado_em).toLocaleDateString('pt-BR')}</span>
+                            </div>
 
                             <div className="flex gap-sm mt-md">
                                 <button
@@ -205,9 +229,45 @@ function Projetos() {
                                     onChange={e => setFormData({ ...formData, descricao: e.target.value })}
                                 />
                             </div>
-                            <div className="flex gap-sm">
+
+                            <div className="grid grid-2 gap-md">
+                                <div className="form-group">
+                                    <label className="form-label">Idioma da Interface</label>
+                                    <select
+                                        className="form-input"
+                                        value={formData.idioma}
+                                        onChange={e => setFormData({ ...formData, idioma: e.target.value })}
+                                    >
+                                        <option value="en">🇺🇸 English</option>
+                                        <option value="pt">🇧🇷 Português</option>
+                                        <option value="es">🇪🇸 Español</option>
+                                    </select>
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label text-small flex-between">
+                                        Nível de Criatividade (IA)
+                                        <span className="text-secondary">{formData.temperatura}</span>
+                                    </label>
+                                    <input
+                                        type="range"
+                                        className="form-input"
+                                        min="0"
+                                        max="1"
+                                        step="0.1"
+                                        value={formData.temperatura}
+                                        onChange={e => setFormData({ ...formData, temperatura: parseFloat(e.target.value) })}
+                                        style={{ height: '38px', padding: '0' }}
+                                    />
+                                    <div className="flex-between text-muted" style={{ fontSize: '10px' }}>
+                                        <span>Preciso</span>
+                                        <span>Criativo</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-sm mt-lg">
                                 <button type="button" className="btn btn-secondary" onClick={closeModal}>Cancelar</button>
-                                <button type="submit" className="btn btn-primary" disabled={submitting}>Salvar</button>
+                                <button type="submit" className="btn btn-primary" disabled={submitting}>Salvar Alterações</button>
                             </div>
                         </form>
                     </div>
