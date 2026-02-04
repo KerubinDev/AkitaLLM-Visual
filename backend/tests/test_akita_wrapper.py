@@ -1,25 +1,33 @@
 import pytest
 from unittest.mock import patch, MagicMock
-from app.core.akita_wrapper import AkitaEngine
+from app.core.akita_wrapper import PipelineOrchestrator
 
 @pytest.fixture
-def akita_engine():
-    return AkitaEngine()
+def orchestrator():
+    return PipelineOrchestrator(base_url="http://test-core")
 
 @pytest.mark.asyncio
-async def test_akita_engine_initialization(akita_engine):
-    assert akita_engine is not None
+async def test_orchestrator_initialization(orchestrator):
+    assert orchestrator.base_url == "http://test-core"
 
 @pytest.mark.asyncio
-async def test_run_command_mock(akita_engine):
-    with patch("subprocess.Popen") as mock_popen:
-        mock_process = MagicMock()
-        mock_process.stdout.readline.side_effect = [b"Analyzing code...", b""]
-        mock_process.poll.return_value = 0
-        mock_process.returncode = 0
-        mock_popen.return_value = mock_process
+async def test_orchestrator_execute_mock(orchestrator):
+    # Mock the httpx client and its post/get methods
+    with patch("httpx.AsyncClient.post") as mock_post, \
+         patch("httpx.AsyncClient.get") as mock_get:
         
-        # This is a simplified test case for the wrapper logic
-        # In a real scenario, we'd test the specific methods of AkitaEngine
-        # and how they handle output streams.
-        assert hasattr(akita_engine, "execute_task")
+        # Mock /v1/execute response
+        mock_post.return_value = MagicMock(status_code=200)
+        mock_post.return_value.json.return_value = {"execution_id": "test-123"}
+        
+        # Mock /v1/logs and /v1/status sequences
+        mock_get.side_effect = [
+            MagicMock(status_code=200, json=lambda: {"logs": ["Test log"]}), # First logs call
+            MagicMock(status_code=200, json=lambda: {"status": "succeeded", "result": "done"}) # First status call
+        ]
+        
+        result = await orchestrator.execute({"mode": "review", "target": "."})
+        
+        assert result["success"] is True
+        assert result["data"]["result"] == "done"
+        mock_post.assert_called_once()
